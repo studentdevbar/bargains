@@ -1,25 +1,15 @@
 import Link from "next/link";
-import CouponCard from "./CouponCard";
+import CouponCard, { CouponCardProps } from "./CouponCard";
 
-type Coupon = {
-  id: string;
-  title: string;
-  imageSrc: string;
-  imageAlt: string;
-  imageBgClass?: string;
-  expiryDateLabel?: string;
-  isExclusive?: boolean;
-  likes?: number;
-  shares?: number;
-};
+
 
 type PopularCouponsProps = {
-  coupons?: Coupon[];
+  coupons?: CouponCardProps[];
 };
 
-const defaultCoupons: Coupon[] = [
+const defaultCoupons: CouponCardProps[] = [
   {
-    id: "jumia",
+    id: 1,
     title: "15% Off All Lighting Fixtures By Design",
     imageSrc: "/images/jumia.png",
     imageAlt: "Jumia",
@@ -30,7 +20,7 @@ const defaultCoupons: Coupon[] = [
     shares: 201,
   },
   {
-    id: "coldstone",
+    id: 2,
     title: "Buy 1 Medium Cup, Get 1 Free",
     imageSrc: "/images/coldstone.png",
     imageAlt: "Cold Stone",
@@ -41,11 +31,11 @@ const defaultCoupons: Coupon[] = [
     shares: 201,
   },
   {
-    id: "chicken-republic",
-    title: "₦500 Off Any Student Combo Meal (Valid in-store only)",
-    imageSrc: "/images/chickenrepublic.png",
-    imageAlt: "Chicken Republic",
-    imageBgClass: "bg-[#FF0000]",
+    id: 3,
+    title: "₦500 Off On Apple Music Subscription",
+    imageSrc: "/images/mtn-logo.svg",
+    imageAlt: "Mtn Nigeria",
+    imageBgClass: "bg-[#FFCB03]",
     expiryDateLabel: "25 Nov, 25",
     isExclusive: true,
     likes: 501,
@@ -62,7 +52,7 @@ export default function PopularCoupons({ coupons = defaultCoupons }: PopularCoup
             <span className="text-gray-900">Popular </span>
             <span className="text-[var(--color-accent-main)]">Coupons</span>
           </h2>
-          <Link href="#" className="text-sm font-medium text-orange-500 hover:text-orange-600">View All Coupons</Link>
+          <Link href="/coupons" className="text-base font-medium text-secondary-main hover:text-accent-dark">View All Coupons</Link>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">

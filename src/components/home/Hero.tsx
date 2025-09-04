@@ -6,10 +6,10 @@ export default function Hero() {
       <div className="mx-auto grid max-w-7xl grid-cols-1 items-center justify-between gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:py-24 lg:px-8">
         {/* Left: Copy + Search */}
         <div>
-          <p className="mb-4 text-3xl font-extrabold leading-tight tracking-tight text-[var(--color-accent-main)] sm:text-4xl lg:text-5xl">
+          <p className="mb-4 text-3xl font-extrabold leading-tight tracking-tight text-secondary-main sm:text-4xl lg:text-5xl">
             Stop Carrying Last!
           </p>
-          <h1 className="mb-6 text-4xl font-extrabold leading-tight tracking-tight text-[var(--color-secondary-main)] sm:text-5xl lg:text-6xl">
+          <h1 className="mb-6 text-4xl font-extrabold leading-tight tracking-tight text-accent-main sm:text-5xl lg:text-6xl">
             Save Money as a Nigerian University Student
           </h1>
           <p className="mb-8 max-w-xl text-base leading-relaxed text-gray-700 sm:text-lg">

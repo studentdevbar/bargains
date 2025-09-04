@@ -62,6 +62,11 @@ export default function Header() {
               </Link>
             </li>
             <li>
+              <Link href="/coupons" className="hover:underline">
+                All Coupons
+              </Link>
+            </li>
+            <li>
               <button className="inline-flex items-center gap-1 hover:underline">
                 <span>Categories</span>
                 <svg
@@ -79,11 +84,7 @@ export default function Header() {
                 About us
               </Link>
             </li>
-            <li>
-              <Link href="/brands" className="hover:underline">
-                Brands
-              </Link>
-            </li>
+           
             <li>
               <Link href="/contact" className="hover:underline">
                 Contact Us

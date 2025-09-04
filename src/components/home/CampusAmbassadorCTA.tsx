@@ -18,7 +18,7 @@ export default function CampusAmbassadorCTA() {
 
           <div className="mt-8">
             <Link
-              href="/signup"
+              href="/register"
               className="inline-block rounded-full bg-[var(--color-secondary-main)] px-8 py-3 font-medium text-white hover:brightness-105"
             >
               Sign Up
