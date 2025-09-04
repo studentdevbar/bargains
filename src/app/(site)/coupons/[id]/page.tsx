@@ -1,22 +1,16 @@
 "use server";
 
 import PageBanner from "@/components/layout/PageBanner";
-import { Button } from "@/components/ui/button";
 import {
   BadgeCheck,
-  Clock,
-  Link as LinkIcon,
-  Image as ImageIcon,
   Gift,
 } from "lucide-react";
-import Link from "next/link";
 import { DropClient } from "@/components/drops/DropClient";
 import { CountdownPanel } from "@/components/drops/CountdownPanel";
+import { RewardReveal } from "@/components/drops/RewardReveal";
+import type { DropReward } from "@/components/drops/RewardReveal";
 
-type DropReward =
-  | { type: "image"; url: string; alt?: string }
-  | { type: "link"; url: string; label?: string }
-  | { type: "text"; text: string };
+// DropReward type is imported from client component
 
 type Drop = {
   id: string;
@@ -38,14 +32,11 @@ const DROPS: Record<string, Drop> = {
     description:
       "Get an exclusive digital sticker pack when the timer hits zero. Stay tuned while our video runs!",
     // 5 minutes from now
-    dropAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+    dropAt: new Date(Date.now() + 1 * 30 * 1000).toISOString(),
     videoUrl:
       "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    reward: {
-      type: "image",
-      url: "/images/brandmanny.png",
-      alt: "Sticker Pack",
-    },
+    reward: { type: "text", text: "COLD-STUDENT-25" },
+
     coverImageUrl:
       "https://www.mtn.ng/wp-content/uploads/2025/06/MTN-MEGA-BILLIO-web-new.jpg",
   },
@@ -72,78 +63,23 @@ const DROPS: Record<string, Drop> = {
     description:
       "We’ll reveal a one-time phrase you can use at checkout when the timer ends.",
     dropAt: new Date(Date.now() + 30 * 1000).toISOString(),
-    reward: { type: "text", text: "COLD-STUDENT-25" },
+    reward: {
+      type: "image",
+      url: "/images/brandmanny.png",
+      alt: "Sticker Pack",
+    },
     coverImageUrl: "/images/coldstone.png",
   },
 };
 
-
-function RewardReveal({ reward }: { reward: DropReward }) {
-  switch (reward.type) {
-    case "image":
-      return (
-        <div className="flex flex-col items-center justify-center gap-4">
-          <div className="inline-flex items-center gap-2 text-sm text-gray-600">
-            <ImageIcon className="size-4" />
-            <span>Download your image</span>
-          </div>
-          <img
-            src={reward.url}
-            alt={reward.alt ?? "Reward image"}
-            className="h-auto max-h-[360px] max-w-full rounded-xl border"
-          />
-          <a
-            href={reward.url}
-            download
-            className="rounded-md bg-[var(--color-accent-main)] px-4 py-2 text-white hover:opacity-90"
-          >
-            Download
-          </a>
-        </div>
-      );
-    case "link":
-      return (
-        <div className="flex flex-col items-center justify-center gap-4">
-          <div className="inline-flex items-center gap-2 text-sm text-gray-600">
-            <LinkIcon className="size-4" />
-            <span>Your reward link</span>
-          </div>
-          <Link
-            href={reward.url}
-            target="_blank"
-            className="rounded-md bg-[var(--color-accent-main)] px-4 py-2 text-white hover:opacity-90"
-          >
-            {reward.label ?? "Open link"}
-          </Link>
-        </div>
-      );
-    case "text":
-      return (
-        <div className="flex flex-col items-center justify-center gap-4">
-          <div className="inline-flex items-center gap-2 text-sm text-gray-600">
-            <Gift className="size-4" />
-            <span>Your code</span>
-          </div>
-          <div className="rounded-xl border bg-gray-50 px-6 py-4 text-2xl font-semibold tracking-widest">
-            {reward.text}
-          </div>
-          <Button
-            onClick={() => navigator.clipboard.writeText(reward.text)}
-            className="w-fit"
-          >
-            Copy
-          </Button>
-        </div>
-      );
-  }
-}
+// RewardReveal moved to a client component
 
 type Params = Promise<{ id: string }>;
 
 export default async function Page(props: { params: Params }) {
   const params = await props.params;
   const { id } = params;
-  console.log(id)
+  console.log(id);
   const drop: Drop | undefined = DROPS[id] ?? DROPS["mtn"];
 
   return (
@@ -211,7 +147,8 @@ export default async function Page(props: { params: Params }) {
                         )}
                       </div>
                       <p className="mt-4 text-sm text-gray-700">
-                        While you wait, enjoy this short video from {drop.brandName}. The reward will unlock automatically
+                        While you wait, enjoy this short video from{" "}
+                        {drop.brandName}. The reward will unlock automatically
                         when the timer finishes.
                       </p>
                     </div>
