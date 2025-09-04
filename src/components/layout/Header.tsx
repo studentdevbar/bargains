@@ -43,7 +43,7 @@ export default function Header() {
               Sign In
             </Link>
             <Link
-              href="/signup"
+              href="/register"
               className="rounded-full bg-accent-main px-5 py-2.5 text-white hover:bg-accent-dark"
             >
               Sign Up
