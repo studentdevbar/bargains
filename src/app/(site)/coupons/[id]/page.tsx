@@ -32,7 +32,7 @@ const DROPS: Record<string, Drop> = {
     description:
       "Get an exclusive digital sticker pack when the timer hits zero. Stay tuned while our video runs!",
     // 5 minutes from now
-    dropAt: new Date(Date.now() + 100 * 40 * 1000).toISOString(),
+    dropAt: new Date(Date.now() + 110 * 40 * 1000).toISOString(),
     videoUrl:
       "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
     reward: { type: "text", text: "COLD-STUDENT-25" },
