@@ -1,3 +1,4 @@
+import { Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -9,7 +10,12 @@ export default function Header() {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <Link href="/" className="shrink-0">
-            <Image src="/logo.png" alt="Student Bargains" width={150} height={150} />
+            <Image
+              src="/logo.png"
+              alt="Student Bargains"
+              width={150}
+              height={150}
+            />
           </Link>
 
           {/* Search */}
@@ -19,30 +25,21 @@ export default function Header() {
               placeholder="Search anything here..."
               className="w-full bg-transparent py-3 text-sm text-gray-700 placeholder-gray-400 outline-none"
             />
-            <button
-              type="submit"
-              aria-label="Search"
-              className="grid size-10 place-items-center rounded-full bg-orange-500 text-white hover:bg-orange-600"
-            >
-              {/* Search icon */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="size-5"
+            <div>
+              <button
+                type="submit"
+                aria-label="Search"
+                className="grid size-10 place-items-center rounded-full bg-secondary-main text-white hover:bg-accent-dark"
               >
-                <path
-                  fillRule="evenodd"
-                  d="M10.5 3.75a6.75 6.75 0 1 0 4.243 11.928l3.79 3.79a.75.75 0 1 0 1.06-1.06l-3.79-3.79A6.75 6.75 0 0 0 10.5 3.75Zm-5.25 6.75a5.25 5.25 0 1 1 10.5 0 5.25 5.25 0 0 1-10.5 0Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
+                {/* Search icon */}
+                <Search />
+              </button>
+            </div>
           </form>
 
           {/* Auth actions */}
           <div className="flex items-center gap-4">
-            <Link href="/signin" className="text-accent-main hover:underline">
+            <Link href="/login" className="text-accent-main hover:underline">
               Sign In
             </Link>
             <Link

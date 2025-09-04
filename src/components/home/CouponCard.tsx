@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
-import { CalendarDays, Heart, Upload } from "lucide-react";
+import { useState } from "react";
+import { CalendarDays, Heart, Upload, ThumbsUp, ThumbsDown, Share2, Copy, ExternalLink } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "../ui/dialog";
 
 type CouponCardProps = {
   imageSrc: string;
@@ -11,6 +15,8 @@ type CouponCardProps = {
   likes?: number;
   shares?: number;
   buttonLabel?: string;
+  couponCode?: string;
+  couponUrl?: string;
 };
 
 export default function CouponCard({
@@ -23,7 +29,33 @@ export default function CouponCard({
   likes = 501,
   shares = 201,
   buttonLabel = "Show Coupon",
+  couponCode = "SB-123-ABC",
+  couponUrl,
 }: CouponCardProps) {
+  const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
+
+  const copyText = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (_) {
+      // no-op
+    }
+  };
+
+  const handleCopyCode = () => copyText(couponCode);
+  const handleCopyLink = () => copyText(couponUrl || window.location.href);
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text: "Check out this student coupon", url: couponUrl || window.location.href });
+      } else {
+        await copyText(couponUrl || window.location.href);
+      }
+    } catch (_) {
+      // user cancelled or not supported
+    }
+  };
   return (
     <div className="flex h-full flex-col rounded-3xl bg-white p-4 shadow-sm ring-1 ring-gray-200/60">
       {/* Brand image */}
@@ -55,9 +87,68 @@ export default function CouponCard({
 
       {/* Button */}
       <div className="mt-5">
-        <button className="w-full rounded-full bg-[var(--color-accent-main)] px-6 py-3 text-white hover:bg-[var(--color-accent-dark)]">
-          {buttonLabel}
-        </button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <button className="w-full rounded-full bg-[var(--color-accent-main)] px-6 py-3 text-white hover:bg-[var(--color-accent-dark)]">
+              {buttonLabel}
+            </button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader className="pr-8">
+              <DialogTitle>{title}</DialogTitle>
+              <DialogDescription>Use the coupon below and let us know if it worked.</DialogDescription>
+            </DialogHeader>
+
+            {/* Coupon code */}
+            <div className="flex items-center justify-between rounded-lg border border-secondary-main bg-secondary-main/10 px-4 py-3">
+              <code className="font-mono text-sm tracking-wide">{couponCode}</code>
+              <button onClick={handleCopyCode} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-accent-main hover:bg-accent-main/10 cursor-pointer">
+                <Copy className="size-4" /> Copy
+              </button>
+            </div>
+
+            {/* Visit link */}
+            {couponUrl && (
+              <a
+                href={couponUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center justify-center rounded-full bg-[var(--color-secondary-main)] px-4 py-2 text-sm font-medium text-white hover:brightness-105"
+              >
+                <ExternalLink className="mr-2 size-4" /> Visit Offer
+              </a>
+            )}
+
+            {/* Feedback: Did it work? */}
+            <div className="mt-4">
+              <p className="mb-2 text-sm text-gray-600">Did this coupon work?</p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setFeedback("up")}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm ${feedback === "up" ? "border-green-600 text-green-700 bg-green-50" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}
+                >
+                  <ThumbsUp className="size-4" /> Yes
+                </button>
+                <button
+                  onClick={() => setFeedback("down")}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm ${feedback === "down" ? "border-red-600 text-red-700 bg-red-50" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}
+                >
+                  <ThumbsDown className="size-4" /> No
+                </button>
+              </div>
+            </div>
+
+            {/* Share */}
+            <div className="mt-4 flex items-center gap-3">
+              <button onClick={handleShare} className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                <Share2 className="size-4" /> Share
+              </button>
+              <button onClick={handleCopyLink} className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                <Copy className="size-4" /> Copy link
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
