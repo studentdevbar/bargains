@@ -1,28 +1,41 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { CustomButton } from "@/components/ui/custom-button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useRouter } from "next/navigation";
+import { verifyOtp } from "@/actions/register/verify-otp";
+import { toast } from "sonner";
+import { createSession, setVerifiedCookie } from "@/actions/helpers/session";
 
 type OtpStepProps = {
   email: string;
   onBack: () => void;
-  onVerify: (otp: string) => void;
 };
 
-export default function OtpStep({ email, onBack, onVerify }: OtpStepProps) {
+export default function OtpStep({ email, onBack }: OtpStepProps) {
   const [otp, setOtp] = useState("");
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (otp.length === 6) onVerify(otp);
-    router.push("/verify-account");
+  async function handleVerify() {
+    if (otp.length !== 6) return;
+    if (loading) return;
+    setLoading(true);
+    const result = await verifyOtp(email, otp);
+    if (result.success && result.data) {
+      await createSession(result.data.token);
+      await setVerifiedCookie(Boolean(result.data.user?.verified));
+      router.push("/verify-account");
+    } else {
+      toast.error(result.error || "Failed to verify OTP");
+    }
+    setLoading(false);
+    
   }
 
   return (
-    <form className="space-y-4 " onSubmit={handleSubmit}>
+    <div className="space-y-4 ">
       <p className="text-sm text-muted-foreground text-center">We sent a 6‑digit code to <span className="font-medium text-foreground">{email}</span></p>
       <div className="space-y-1.5 flex items-center flex-col">
         <label className="text-sm font-medium text-center">Enter OTP</label>
@@ -43,10 +56,10 @@ export default function OtpStep({ email, onBack, onVerify }: OtpStepProps) {
       </div>
 
       <div className="flex gap-3 mt-12">
-        <Button type="button" variant="outline" className="h-11 flex-1 rounded-full" onClick={onBack}>Back</Button>
-        <Button type="submit" disabled={otp.length !== 6} className="h-11 flex-1 text-[15px] rounded-full bg-accent-main">Verify</Button>
+        <CustomButton type="button" variant="outline" className="h-11 flex-1 rounded-full" onClick={onBack} disabled={loading}>Back</CustomButton>
+        <CustomButton type="button" onClick={handleVerify} loading={loading} loadingText="Verifying..." disabled={otp.length !== 6 || loading} className="h-11 flex-1 text-[15px] rounded-full bg-accent-main">Verify</CustomButton>
       </div>
-    </form>
+    </div>
   );
 }
 

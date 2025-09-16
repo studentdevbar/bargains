@@ -29,10 +29,6 @@ export default function RegisterPage() {
         <OtpStep
           email={email}
           onBack={() => setStep("email")}
-          onVerify={(otp) => {
-            // For now just log; subsequent steps would follow here
-            console.log("OTP submitted:", otp);
-          }}
         />
       )}
     </AuthWrapper>

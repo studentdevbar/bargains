@@ -52,14 +52,6 @@ export default function Step3SentNotice({ schoolEmail, onBack }: Step3Props) {
         </p>
       </div>
       <div className="flex gap-3 justify-center">
-        <Button
-          type="button"
-          variant="outline"
-          className="h-11 rounded-full"
-          onClick={onBack}
-        >
-          Back
-        </Button>
         <Button type="button" className="h-11 rounded-full bg-accent-main">
           Resend email
         </Button>
