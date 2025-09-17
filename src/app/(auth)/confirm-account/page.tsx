@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import AuthWrapper from "@/components/auth/AuthWrapper";
 import { CustomButton } from "@/components/ui/custom-button";
@@ -10,11 +10,12 @@ import Lottie from "lottie-react";
 import Link from "next/link";
 import { setVerifiedCookie } from "@/actions/helpers/session";
 
-type Params = Promise<{ token: string }>;
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
-export default async function Page(props: { params: Params }) {
-  const params = await props.params;
-  const { token } = params;
+export default function Page(props: {  searchParams: SearchParams }) {
+  const searchParams = use(props.searchParams)
+  const { token } = searchParams;
+
 
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -32,7 +33,7 @@ export default async function Page(props: { params: Params }) {
     }
     try {
       setLoading(true);
-      const res = await confirmAccount(token);
+      const res = await confirmAccount(token as string);
       if (res.success) {
         await setVerifiedCookie(true);
         setStatus("success");

@@ -23,10 +23,12 @@ export default function Step2SchoolEmail({
   profile,
 }: Step2Props) {
   const [email, setEmail] = useState(defaultEmail || "");
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit() {
     if (!email.trim()) return;
     if (!profile.firstName || !profile.lastName || !profile.schoolId || !profile.gender || !profile.dob) return;
+    setIsLoading(true);
     const data = {
       first_name: profile.firstName,
       last_name: profile.lastName,
@@ -42,6 +44,7 @@ export default function Step2SchoolEmail({
       toast.error(result.error);
     }
     onNext(email);
+    setIsLoading(false);
   }
 
   return (
@@ -82,6 +85,9 @@ export default function Step2SchoolEmail({
         <CustomButton type="button"
           onClick={handleSubmit}
           className="h-11 flex-1 text-[15px] rounded-full bg-accent-main"
+          disabled={isLoading}
+          loading={isLoading}
+          loadingText="Sending..."
         >
           Continue
         </CustomButton>
