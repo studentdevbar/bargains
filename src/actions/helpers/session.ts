@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 const SESSION_COOKIE_KEY = "sb_session";
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const VERIFIED_COOKIE_KEY = "sb_verified"; // "1" or "0"
+const ACCOUNT_CONFIRMED_COOKIE_KEY = "sb_account_confirmed"; // "1" or "0"
+
 
 // Store only the token in the cookie
 export async function createSession(token: string) {
@@ -29,6 +31,8 @@ export async function getSession(): Promise<string | null> {
 export async function deleteSession() {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE_KEY);
+  cookieStore.delete(ACCOUNT_CONFIRMED_COOKIE_KEY);
+  cookieStore.delete(VERIFIED_COOKIE_KEY);
 }
 
 // Minimal verified flag cookie for middleware checks
