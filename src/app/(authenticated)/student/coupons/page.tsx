@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CouponCard from "@/components/home/CouponCard";
 import { Heart, TicketCheck } from "lucide-react";
+import { getRedeemedCoupons } from "@/actions/coupons/get-redeemed";
+import DataTablePagination from "@/lib/DataTablePagination";
 
 type CouponData = {
   id: number;
@@ -25,6 +27,15 @@ type CouponData = {
 export default function StudentCouponsPage() {
   const [activeTab, setActiveTab] = useState<"favourites" | "redeemed">("favourites");
   const [loading, setLoading] = useState(false);
+  const [loadingRedeemed, setLoadingRedeemed] = useState(true);
+  const [redeemedCoupons, setRedeemedCoupons] = useState<CouponData[]>([]);
+  const [mounted, setMounted] = useState(false);
+  
+  // Pagination state for redeemed coupons
+  const [redeemedPage, setRedeemedPage] = useState(1);
+  const [redeemedPerPage, setRedeemedPerPage] = useState(15);
+  const [redeemedTotalPages, setRedeemedTotalPages] = useState(1);
+  const [redeemedTotal, setRedeemedTotal] = useState(0);
 
   // Simulated favourited coupons data
   const favouritedCoupons: CouponData[] = [
@@ -120,79 +131,47 @@ export default function StudentCouponsPage() {
     },
   ];
 
-  // Simulated redeemed coupons data
-  const redeemedCoupons: CouponData[] = [
-    {
-      id: 7,
-      title: "40% Off First Food Order",
-      is_exclusive: true,
-      expires_at: "2025-10-20T23:59:59Z",
-      uses: 3421,
-      shares_count: 890,
-      active: true,
-      photo_cover: "/images/vendors/food.jpg",
-      type: "code",
-      featured: true,
-      created_at: "2025-01-10T08:00:00Z",
-      vendor: "Chowdeck",
-      coupon_code: "FIRST40",
-      redeemed_at: "2025-03-15T14:22:00Z",
-    },
-    {
-      id: 8,
-      title: "Free Premium Account for 3 Months",
-      is_exclusive: false,
-      expires_at: "2025-12-31T23:59:59Z",
-      uses: 1567,
-      shares_count: 423,
-      active: true,
-      photo_cover: "/images/vendors/canva.jpg",
-      type: "link",
-      featured: false,
-      created_at: "2025-02-05T10:30:00Z",
-      vendor: "Canva",
-      coupon_url: "https://canva.com/education",
-      redeemed_at: "2025-03-10T09:45:00Z",
-    },
-    {
-      id: 9,
-      title: "50% Off Annual Gym Membership",
-      is_exclusive: true,
-      expires_at: null,
-      uses: 234,
-      shares_count: 67,
-      active: true,
-      photo_cover: "/images/vendors/gym.jpg",
-      type: "code",
-      featured: true,
-      created_at: "2025-01-25T15:00:00Z",
-      vendor: "Fitness First",
-      coupon_code: "FIT50",
-      redeemed_at: "2025-02-28T16:30:00Z",
-    },
-    {
-      id: 10,
-      title: "15% Off All Stationery",
-      is_exclusive: false,
-      expires_at: "2025-11-15T23:59:59Z",
-      uses: 789,
-      shares_count: 201,
-      active: true,
-      photo_cover: "/images/vendors/stationery.jpg",
-      type: "code",
-      featured: false,
-      created_at: "2025-02-20T12:15:00Z",
-      vendor: "Essentials",
-      coupon_code: "STAT15",
-      redeemed_at: "2025-03-05T11:20:00Z",
-    },
-  ];
+  // Handle client-side mounting
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Fetch redeemed coupons from API
+  useEffect(() => {
+    async function fetchRedeemedCoupons() {
+      setLoadingRedeemed(true);
+      try {
+        const response = await getRedeemedCoupons(redeemedPage, redeemedPerPage);
+        if (response.success && response.data) {
+          const paginatedData = response.data as {
+            current_page: number;
+            data: CouponData[];
+            last_page: number;
+            per_page: number;
+            total: number;
+          };
+          setRedeemedCoupons(response.data.data);
+          setRedeemedPage(paginatedData.current_page);
+          setRedeemedTotalPages(paginatedData.last_page);
+          setRedeemedTotal(paginatedData.total);
+          setRedeemedPerPage(paginatedData.per_page);
+        }
+      } catch (error) {
+        console.error("Failed to fetch redeemed coupons:", error);
+      } finally {
+        setLoadingRedeemed(false);
+      }
+    }
+
+    fetchRedeemedCoupons();
+  }, [redeemedPage, redeemedPerPage]);
 
   const formatExpiry = (iso: string | null) => {
+    if (!mounted) return "Loading...";
     if (!iso) return "No expiry";
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "No expiry";
-    return d.toLocaleDateString(undefined, {
+    return d.toLocaleDateString("en-US", {
       day: "2-digit",
       month: "short",
       year: "2-digit",
@@ -200,15 +179,40 @@ export default function StudentCouponsPage() {
   };
 
   const formatRedeemDate = (iso: string) => {
+    if (!mounted) return "";
     const d = new Date(iso);
-    return d.toLocaleDateString(undefined, {
+    return d.toLocaleDateString("en-US", {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
   };
 
+  const handleRedeemedPageChange = (page: number) => {
+    setRedeemedPage(page);
+  };
+
+  const handleRedeemedPerPageChange = (perPage: number) => {
+    setRedeemedPerPage(perPage);
+    setRedeemedPage(1); // Reset to first page when changing per page
+  };
+
   const currentCoupons = activeTab === "favourites" ? favouritedCoupons : redeemedCoupons;
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <div className="space-y-6">
+        <div className="h-20 animate-pulse rounded-lg bg-gray-200"></div>
+        <div className="h-12 animate-pulse rounded-lg bg-gray-200"></div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-96 animate-pulse rounded-3xl bg-gray-200" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -311,7 +315,7 @@ export default function StudentCouponsPage() {
       </div>
 
       {/* Content */}
-      {loading ? (
+      {(loading || (activeTab === "redeemed" && loadingRedeemed)) ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
@@ -384,6 +388,21 @@ export default function StudentCouponsPage() {
               </div>
             ))}
           </div>
+
+          {/* Pagination for redeemed coupons */}
+          {activeTab === "redeemed" && redeemedTotalPages > 1 && (
+            <div className="mt-8">
+              <DataTablePagination
+                page={redeemedPage}
+                totalPages={redeemedTotalPages}
+                perPage={redeemedPerPage}
+                totalItems={redeemedTotal}
+                currentPageLength={redeemedCoupons.length}
+                onPageChange={handleRedeemedPageChange}
+                onPerPageChange={handleRedeemedPerPageChange}
+              />
+            </div>
+          )}
         </>
       )}
     </div>

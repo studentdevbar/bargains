@@ -13,6 +13,8 @@ import {
   Copy,
   ExternalLink,
   Clock,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import {
   Dialog,
@@ -24,6 +26,8 @@ import {
 import { useCountdown } from "@/components/drops/Countdown";
 import Link from "next/link";
 import { getSession } from "@/actions/helpers/session";
+import { getCouponReveal } from "@/actions/coupons/reveal";
+import { favouriteCoupon } from "@/actions/coupons/favourite";
 
 export interface CouponCardProps {
   id: number;
@@ -41,6 +45,7 @@ export interface CouponCardProps {
   className?: string;
   variant?: "coupon" | "drop";
   dropAt?: string; // ISO string, required when variant is "drop"
+  isFavorited?: boolean;
 }
 
 export default function CouponCard({
@@ -59,9 +64,15 @@ export default function CouponCard({
   className,
   variant = "coupon",
   dropAt,
+  isFavorited = false,
 }: CouponCardProps) {
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [revealedCode, setRevealedCode] = useState<string | null>(null);
+  const [isRevealing, setIsRevealing] = useState(false);
+  const [revealError, setRevealError] = useState(false);
+  const [isFavourited, setIsFavourited] = useState(isFavorited);
+  const [isFavouriting, setIsFavouriting] = useState(false);
   const router = useRouter();
 
   // Always call hook to respect rules-of-hooks; UI will only show when variant === "drop"
@@ -72,13 +83,71 @@ export default function CouponCard({
   const pad = (n: number) => String(n).padStart(2, "0");
 
 
+  const revealCoupon = async () => {
+    setIsRevealing(true);
+    setRevealError(false);
+    try {
+      const response = await getCouponReveal(id);
+      if (response.success && response.data) {
+        const data = response.data as { id: number; value: string };
+        setRevealedCode(data.value);
+        setRevealError(false);
+      } else {
+        setRevealError(true);
+      }
+    } catch (error) {
+      console.error("Failed to reveal coupon:", error);
+      setRevealError(true);
+    } finally {
+      setIsRevealing(false);
+    }
+  };
+
   const handleShowCoupon = async () => {
     const token = await getSession();
     if (!token) {
       router.push("/login");
       return;
     }
+
     setDialogOpen(true);
+    
+    // Fetch the revealed coupon code if not already loaded
+    if (!revealedCode && !isRevealing && !revealError) {
+      await revealCoupon();
+    }
+  };
+
+  const handleRetry = async () => {
+    await revealCoupon();
+  };
+
+  const handleFavourite = async () => {
+    const token = await getSession();
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    if (isFavouriting) return;
+
+    setIsFavouriting(true);
+    // Optimistic update
+    setIsFavourited(!isFavourited);
+
+    try {
+      const response = await favouriteCoupon(id.toString());
+      if (!response.success) {
+        // Revert on failure
+        setIsFavourited(isFavourited);
+      }
+    } catch (error) {
+      console.error("Failed to favourite coupon:", error);
+      // Revert on error
+      setIsFavourited(isFavourited);
+    } finally {
+      setIsFavouriting(false);
+    }
   };
 
   const copyText = async (text: string) => {
@@ -89,7 +158,7 @@ export default function CouponCard({
     }
   };
 
-  const handleCopyCode = () => copyText(couponCode);
+  const handleCopyCode = () => copyText(revealedCode || couponCode);
   const handleCopyLink = () => copyText(couponUrl || window.location.href);
 
   const handleShare = async () => {
@@ -152,10 +221,16 @@ export default function CouponCard({
       {/* Stats */}
       <div className="mt-auto flex items-center justify-between border-t border-gray-200/70 pt-4 text-sm text-gray-600">
         <div className="flex items-center gap-6">
-          <span className="inline-flex items-center gap-1">
-            <Heart className="size-4" />
+          <button
+            onClick={handleFavourite}
+            disabled={isFavouriting}
+            className="inline-flex items-center gap-1 cursor-pointer hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Heart
+              className={`size-4 ${isFavourited ? "fill-red-500 text-red-500" : ""}`}
+            />
             {likes}
-          </span>
+          </button>
           <span className="inline-flex items-center gap-1">
             <Upload className="size-4" />
             {shares}
@@ -189,17 +264,40 @@ export default function CouponCard({
               </DialogHeader>
 
               {/* Coupon code */}
-              <div className="flex items-center justify-between rounded-lg border border-secondary-main bg-secondary-main/10 px-4 py-3">
-                <code className="font-mono text-sm tracking-wide">
-                  {couponCode}
-                </code>
-                <button
-                  onClick={handleCopyCode}
-                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-accent-main hover:bg-accent-main/10 cursor-pointer"
-                >
-                  <Copy className="size-4" /> Copy
-                </button>
-              </div>
+              {revealError ? (
+                <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <AlertCircle className="size-5 text-red-600" />
+                    <div>
+                      <h4 className="text-sm font-semibold text-red-900">Failed to load coupon</h4>
+                      <p className="text-xs text-red-700 mt-0.5">
+                        We couldn't retrieve the coupon code. Please try again.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleRetry}
+                    disabled={isRevealing}
+                    className="inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw className={`size-4 ${isRevealing ? 'animate-spin' : ''}`} />
+                    {isRevealing ? 'Retrying...' : 'Try Again'}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between rounded-lg border border-secondary-main bg-secondary-main/10 px-4 py-3">
+                  <code className="font-mono text-sm tracking-wide">
+                    {isRevealing ? "Loading..." : revealedCode}
+                  </code>
+                  <button
+                    onClick={handleCopyCode}
+                    disabled={isRevealing || !revealedCode}
+                    className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-accent-main hover:bg-accent-main/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Copy className="size-4" /> Copy
+                  </button>
+                </div>
+              )}
 
               {/* Visit link */}
               {couponUrl && (
