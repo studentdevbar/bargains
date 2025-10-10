@@ -39,6 +39,7 @@ export default function CouponsPage() {
       is_exclusive: boolean;
       expires_at: string | null;
       uses: number;
+      favorites: number;
       shares_count: number;
       active: boolean;
       photo_cover: string | null;
@@ -64,7 +65,11 @@ export default function CouponsPage() {
         const data =
           filtersResponse.success && filtersResponse.data
             ? (filtersResponse.data as {
-                categories: { id: number; name: string; coupons_count: number }[];
+                categories: {
+                  id: number;
+                  name: string;
+                  coupons_count: number;
+                }[];
                 tags: { id: number; name: string }[];
                 vendors: { id: number; name: string }[];
               })
@@ -85,7 +90,8 @@ export default function CouponsPage() {
     if (filters.search) params.search = filters.search;
     if (filters.per_page) params.per_page = String(filters.per_page);
     if (filters.page) params.page = String(filters.page);
-    if (filters.tag_ids && filters.tag_ids.length) params.tag_ids = filters.tag_ids.join(",");
+    if (filters.tag_ids && filters.tag_ids.length)
+      params.tag_ids = filters.tag_ids.join(",");
     return params;
   }, [filters]);
 
@@ -97,25 +103,7 @@ export default function CouponsPage() {
         const couponsResponse = await getAllCoupons(queryParams);
         const data =
           couponsResponse.success && couponsResponse.data
-            ? (couponsResponse.data as {
-                current_page: number;
-                data: Array<{
-                  id: number;
-                  title: string;
-                  is_exclusive: boolean;
-                  expires_at: string | null;
-                  uses: number;
-                  shares_count: number;
-                  active: boolean;
-                  photo_cover: string | null;
-                  type: "code" | "link";
-                  featured: boolean;
-                  created_at: string;
-                  vendor: string;
-                }>;
-                total: number;
-                last_page: number;
-              })
+            ? couponsResponse.data
             : { current_page: 1, data: [], total: 0, last_page: 1 };
         setCouponsData(data);
       } finally {
@@ -197,7 +185,10 @@ export default function CouponsPage() {
                 </p>
                 <div className="inline-flex items-center gap-2">
                   <span>Sort by:</span>
-                  <select className="rounded-lg border border-gray-300 px-3 py-1.5" disabled>
+                  <select
+                    className="rounded-lg border border-gray-300 px-3 py-1.5"
+                    disabled
+                  >
                     <option>Newest</option>
                     <option>Popular</option>
                   </select>
@@ -216,11 +207,13 @@ export default function CouponsPage() {
                     title={c.title}
                     isExclusive={c.is_exclusive}
                     expiryDateLabel={formatExpiry(c.expires_at)}
-                    likes={c.uses}
+                    likes={c.favorites}
                     shares={c.shares_count}
                     buttonLabel={c.type === "code" ? "Show Code" : "Get Deal"}
                     couponCode={c.type === "code" ? "••••••" : undefined}
-                    couponUrl={c.type === "link" ? "/coupons/" + c.id : undefined}
+                    couponUrl={
+                      c.type === "link" ? "/coupons/" + c.id : undefined
+                    }
                   />
                 ))}
               </div>

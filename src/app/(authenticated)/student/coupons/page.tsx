@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import CouponCard from "@/components/home/CouponCard";
 import { Heart, TicketCheck } from "lucide-react";
 import { getRedeemedCoupons } from "@/actions/coupons/get-redeemed";
+import { getFavourites } from "@/actions/coupons/get-favourites";
 import DataTablePagination from "@/lib/DataTablePagination";
 
 type CouponData = {
@@ -22,13 +23,16 @@ type CouponData = {
   coupon_code?: string;
   coupon_url?: string;
   redeemed_at?: string;
+  is_favorited?: boolean;
 };
 
 export default function StudentCouponsPage() {
   const [activeTab, setActiveTab] = useState<"favourites" | "redeemed">("favourites");
   const [loading, setLoading] = useState(false);
   const [loadingRedeemed, setLoadingRedeemed] = useState(true);
+  const [loadingFavourites, setLoadingFavourites] = useState(true);
   const [redeemedCoupons, setRedeemedCoupons] = useState<CouponData[]>([]);
+  const [favouritedCoupons, setFavouritedCoupons] = useState<CouponData[]>([]);
   const [mounted, setMounted] = useState(false);
   
   // Pagination state for redeemed coupons
@@ -37,104 +41,46 @@ export default function StudentCouponsPage() {
   const [redeemedTotalPages, setRedeemedTotalPages] = useState(1);
   const [redeemedTotal, setRedeemedTotal] = useState(0);
 
-  // Simulated favourited coupons data
-  const favouritedCoupons: CouponData[] = [
-    {
-      id: 1,
-      title: "50% Off All Textbooks",
-      is_exclusive: true,
-      expires_at: "2025-12-31T23:59:59Z",
-      uses: 1245,
-      shares_count: 320,
-      active: true,
-      photo_cover: "/images/vendors/amazon.jpg",
-      type: "code",
-      featured: true,
-      created_at: "2025-01-15T10:00:00Z",
-      vendor: "Amazon",
-      coupon_code: "STUDENT50",
-    },
-    {
-      id: 2,
-      title: "Free Delivery on All Orders",
-      is_exclusive: false,
-      expires_at: "2025-11-30T23:59:59Z",
-      uses: 892,
-      shares_count: 210,
-      active: true,
-      photo_cover: "/images/vendors/jumia.jpg",
-      type: "code",
-      featured: false,
-      created_at: "2025-02-10T14:30:00Z",
-      vendor: "Jumia",
-      coupon_code: "FREEDEL",
-    },
-    {
-      id: 3,
-      title: "30% Off Premium Subscription",
-      is_exclusive: true,
-      expires_at: "2025-10-15T23:59:59Z",
-      uses: 567,
-      shares_count: 145,
-      active: true,
-      photo_cover: "/images/vendors/spotify.jpg",
-      type: "link",
-      featured: true,
-      created_at: "2025-03-05T09:15:00Z",
-      vendor: "Spotify",
-      coupon_url: "https://spotify.com/student",
-    },
-    {
-      id: 4,
-      title: "Buy 2 Get 1 Free - All Fashion Items",
-      is_exclusive: true,
-      expires_at: null,
-      uses: 2100,
-      shares_count: 540,
-      active: true,
-      photo_cover: "/images/vendors/fashion.jpg",
-      type: "code",
-      featured: false,
-      created_at: "2025-01-20T16:45:00Z",
-      vendor: "Fashion Nova",
-      coupon_code: "BUY2GET1",
-    },
-    {
-      id: 5,
-      title: "20% Off Laptops & Electronics",
-      is_exclusive: false,
-      expires_at: "2025-12-25T23:59:59Z",
-      uses: 678,
-      shares_count: 189,
-      active: true,
-      photo_cover: "/images/vendors/electronics.jpg",
-      type: "code",
-      featured: true,
-      created_at: "2025-02-28T11:20:00Z",
-      vendor: "Slot Nigeria",
-      coupon_code: "TECH20",
-    },
-    {
-      id: 6,
-      title: "Free Month of Cloud Storage",
-      is_exclusive: true,
-      expires_at: "2025-11-01T23:59:59Z",
-      uses: 445,
-      shares_count: 98,
-      active: true,
-      photo_cover: "/images/vendors/cloud.jpg",
-      type: "link",
-      featured: false,
-      created_at: "2025-03-12T13:00:00Z",
-      vendor: "Google Drive",
-      coupon_url: "https://google.com/drive/student",
-    },
-  ];
+  // Pagination state for favourited coupons
+  const [favouritesPage, setFavouritesPage] = useState(1);
+  const [favouritesPerPage, setFavouritesPerPage] = useState(15);
+  const [favouritesTotalPages, setFavouritesTotalPages] = useState(1);
+  const [favouritesTotal, setFavouritesTotal] = useState(0);
 
   // Handle client-side mounting
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Fetch favourited coupons from API
+  useEffect(() => {
+    async function fetchFavouritedCoupons() {
+      setLoadingFavourites(true);
+      try {
+        const response = await getFavourites(favouritesPage, favouritesPerPage);
+        if (response.success && response.data) {
+          const paginatedData = response.data as {
+            current_page: number;
+            data: CouponData[];
+            last_page: number;
+            per_page: number;
+            total: number;
+          };
+          setFavouritedCoupons(response.data.data);
+          setFavouritesPage(paginatedData.current_page);
+          setFavouritesTotalPages(paginatedData.last_page);
+          setFavouritesTotal(paginatedData.total);
+          setFavouritesPerPage(paginatedData.per_page);
+        }
+      } catch (error) {
+        console.error("Failed to fetch favourited coupons:", error);
+      } finally {
+        setLoadingFavourites(false);
+      }
+    }
+
+    fetchFavouritedCoupons();
+  }, [favouritesPage, favouritesPerPage]);
 
   // Fetch redeemed coupons from API
   useEffect(() => {
@@ -197,6 +143,15 @@ export default function StudentCouponsPage() {
     setRedeemedPage(1); // Reset to first page when changing per page
   };
 
+  const handleFavouritesPageChange = (page: number) => {
+    setFavouritesPage(page);
+  };
+
+  const handleFavouritesPerPageChange = (perPage: number) => {
+    setFavouritesPerPage(perPage);
+    setFavouritesPage(1); // Reset to first page when changing per page
+  };
+
   const currentCoupons = activeTab === "favourites" ? favouritedCoupons : redeemedCoupons;
 
   // Prevent hydration mismatch by not rendering until mounted
@@ -248,7 +203,7 @@ export default function StudentCouponsPage() {
                   : "bg-gray-100 text-gray-600"
               }`}
             >
-              {favouritedCoupons.length}
+              {favouritesTotal}
             </span>
           </button>
 
@@ -269,7 +224,7 @@ export default function StudentCouponsPage() {
                   : "bg-gray-100 text-gray-600"
               }`}
             >
-              {redeemedCoupons.length}
+              {redeemedTotal}
             </span>
           </button>
         </nav>
@@ -283,7 +238,7 @@ export default function StudentCouponsPage() {
               <Heart className="size-5 text-purple-700" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-purple-900">{favouritedCoupons.length}</p>
+              <p className="text-2xl font-bold text-purple-900">{favouritesTotal}</p>
               <p className="text-xs text-purple-700">Favourited</p>
             </div>
           </div>
@@ -295,7 +250,7 @@ export default function StudentCouponsPage() {
               <TicketCheck className="size-5 text-green-700" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-900">{redeemedCoupons.length}</p>
+              <p className="text-2xl font-bold text-green-900">{redeemedTotal}</p>
               <p className="text-xs text-green-700">Redeemed</p>
             </div>
           </div>
@@ -315,7 +270,7 @@ export default function StudentCouponsPage() {
       </div>
 
       {/* Content */}
-      {(loading || (activeTab === "redeemed" && loadingRedeemed)) ? (
+      {(loading || (activeTab === "redeemed" && loadingRedeemed) || (activeTab === "favourites" && loadingFavourites)) ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
@@ -375,6 +330,7 @@ export default function StudentCouponsPage() {
                   buttonLabel={coupon.type === "code" ? "Show Code" : "Get Deal"}
                   couponCode={coupon.coupon_code || "••••••"}
                   couponUrl={coupon.coupon_url}
+                  isFavorited={activeTab === "favourites" ? true : (coupon.is_favorited ?? false)}
                 />
                 
                 {/* Redeemed badge */}
@@ -388,6 +344,21 @@ export default function StudentCouponsPage() {
               </div>
             ))}
           </div>
+
+          {/* Pagination for favourites coupons */}
+          {activeTab === "favourites" && favouritesTotalPages > 1 && (
+            <div className="mt-8">
+              <DataTablePagination
+                page={favouritesPage}
+                totalPages={favouritesTotalPages}
+                perPage={favouritesPerPage}
+                totalItems={favouritesTotal}
+                currentPageLength={favouritedCoupons.length}
+                onPageChange={handleFavouritesPageChange}
+                onPerPageChange={handleFavouritesPerPageChange}
+              />
+            </div>
+          )}
 
           {/* Pagination for redeemed coupons */}
           {activeTab === "redeemed" && redeemedTotalPages > 1 && (
