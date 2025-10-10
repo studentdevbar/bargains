@@ -25,7 +25,7 @@ type NavItem = {
 export default function DashboardSidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const { user } = useAuthStore();
+  const { user, clear } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
@@ -50,6 +50,7 @@ export default function DashboardSidebar() {
 
   const logoutHandler = () => {
     deleteSession();
+    clear();
     router.push("/login");
   };
 

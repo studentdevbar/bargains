@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CalendarDays,
   Heart,
@@ -18,12 +19,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogDescription,
 } from "../ui/dialog";
 import { useCountdown } from "@/components/drops/Countdown";
-import { Button } from "../ui/button";
 import Link from "next/link";
+import { getSession } from "@/actions/helpers/session";
 
 export interface CouponCardProps {
   id: number;
@@ -61,6 +61,8 @@ export default function CouponCard({
   dropAt,
 }: CouponCardProps) {
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const router = useRouter();
 
   // Always call hook to respect rules-of-hooks; UI will only show when variant === "drop"
   const { days, hours, minutes, seconds } = useCountdown(
@@ -68,6 +70,16 @@ export default function CouponCard({
   );
   const isDrop = variant === "drop";
   const pad = (n: number) => String(n).padStart(2, "0");
+
+
+  const handleShowCoupon = async () => {
+    const token = await getSession();
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    setDialogOpen(true);
+  };
 
   const copyText = async (text: string) => {
     try {
@@ -95,6 +107,7 @@ export default function CouponCard({
       // user cancelled or not supported
     }
   };
+
   return (
     <div className="flex h-full flex-col rounded-3xl bg-white p-4 shadow-sm ring-1 ring-gray-200/60">
       {/* Brand image */}
@@ -159,12 +172,14 @@ export default function CouponCard({
         </Link>
       ) : (
         <div className="mt-5">
-          <Dialog>
-            <DialogTrigger asChild>
-              <button className="w-full rounded-full bg-[var(--color-accent-main)] px-6 py-3 text-white hover:bg-[var(--color-accent-dark)]">
-                {buttonLabel}
-              </button>
-            </DialogTrigger>
+          <button
+            onClick={handleShowCoupon}
+            className="w-full rounded-full bg-[var(--color-accent-main)] px-6 py-3 text-white hover:bg-[var(--color-accent-dark)]"
+          >
+            {buttonLabel}
+          </button>
+
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogContent>
               <DialogHeader className="pr-8">
                 <DialogTitle>{title}</DialogTitle>
