@@ -40,7 +40,6 @@ export interface CouponCardProps {
   likes?: number;
   shares?: number;
   buttonLabel?: string;
-  couponCode?: string;
   couponUrl?: string;
   className?: string;
   variant?: "coupon" | "drop";
@@ -54,12 +53,11 @@ export default function CouponCard({
   imageAlt,
   imageBgClass = "bg-gray-100",
   isExclusive = true,
-  expiryDateLabel = "25 Nov, 25",
+  expiryDateLabel,
   title,
   likes,
   shares,
   buttonLabel = "Show Coupon",
-  couponCode = "SB-123-ABC",
   couponUrl,
   className,
   variant = "coupon",
@@ -158,7 +156,7 @@ export default function CouponCard({
     }
   };
 
-  const handleCopyCode = () => copyText(revealedCode || couponCode);
+  const handleCopyCode = () => revealedCode && copyText(revealedCode);
   const handleCopyLink = () => copyText(couponUrl || window.location.href);
 
   const handleShare = async () => {

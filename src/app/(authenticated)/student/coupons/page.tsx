@@ -328,7 +328,6 @@ export default function StudentCouponsPage() {
                   likes={coupon.uses}
                   shares={coupon.shares_count}
                   buttonLabel={coupon.type === "code" ? "Show Code" : "Get Deal"}
-                  couponCode={coupon.coupon_code || "••••••"}
                   couponUrl={coupon.coupon_url}
                   isFavorited={activeTab === "favourites" ? true : (coupon.is_favorited ?? false)}
                 />

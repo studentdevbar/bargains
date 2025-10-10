@@ -210,7 +210,6 @@ export default function CouponsPage() {
                     likes={c.favorites}
                     shares={c.shares_count}
                     buttonLabel={c.type === "code" ? "Show Code" : "Get Deal"}
-                    couponCode={c.type === "code" ? "••••••" : undefined}
                     couponUrl={
                       c.type === "link" ? "/coupons/" + c.id : undefined
                     }
