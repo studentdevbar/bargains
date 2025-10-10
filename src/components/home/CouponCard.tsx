@@ -99,14 +99,15 @@ export default function CouponCard({
     <div className="flex h-full flex-col rounded-3xl bg-white p-4 shadow-sm ring-1 ring-gray-200/60">
       {/* Brand image */}
       <div
-        className={`relative mb-5 flex h-64  w-full items-center justify-center overflow-hidden rounded-2xl ${imageBgClass} ${className}`}
+        className={`relative mb-5 flex h-64  w-full overflow-hidden rounded-2xl ${imageBgClass} ${className}`}
       >
         <Image
           src={imageSrc}
           alt={imageAlt}
           fill
           sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 30vw"
-          className="object-contain max-h-full max-w-full p-4"
+          className="object-cover"
+          priority={false}
         />
       </div>
 

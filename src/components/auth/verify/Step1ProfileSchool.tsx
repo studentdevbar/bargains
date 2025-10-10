@@ -14,7 +14,6 @@ type Step1Props = {
     school?: string;
     schoolId?: number;
   };
-  schools: { value: string; label: string }[];
   onNext: (data: {
     firstName: string;
     lastName: string;
@@ -25,7 +24,7 @@ type Step1Props = {
   }) => void;
 };
 
-export default function Step1ProfileSchool({ initial, schools, onNext }: Step1Props) {
+export default function Step1ProfileSchool({ initial, onNext }: Step1Props) {
   const [firstName, setFirstName] = useState(initial.firstName ?? "");
   const [lastName, setLastName] = useState(initial.lastName ?? "");
   const [gender, setGender] = useState(initial.gender ?? "male");
@@ -33,7 +32,7 @@ export default function Step1ProfileSchool({ initial, schools, onNext }: Step1Pr
   const [school, setSchool] = useState(initial.school ?? "");
   const [schoolId, setSchoolId] = useState<number | null>(initial.schoolId ?? null);
   const [confirmSchool, setConfirmSchool] = useState(Boolean(initial.school));
-  const [options, setOptions] = useState<{ value: string; label: string }[]>(schools ?? []);
+  const [options, setOptions] = useState<{ value: string; label: string }[]>([]);
   const [loadingSchools, setLoadingSchools] = useState(false);
 
   useEffect(() => {

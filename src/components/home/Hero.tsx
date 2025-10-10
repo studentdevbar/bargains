@@ -18,7 +18,7 @@ export default function Hero() {
           </p>
 
           {/* Search bar */}
-          <form className="flex w-full max-w-2xl items-center gap-2 rounded-full bg-white p-2 shadow-sm ring-1 ring-gray-200/70">
+          {/* <form className="flex w-full max-w-2xl items-center gap-2 rounded-full bg-white p-2 shadow-sm ring-1 ring-gray-200/70">
             <button
               type="button"
               className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gray-100 px-4 py-3 text-sm text-gray-700 hover:bg-gray-200"
@@ -44,7 +44,7 @@ export default function Hero() {
             >
               Search
             </button>
-          </form>
+          </form> */}
         </div>
 
         {/* Right: Visuals (image placeholders) */}

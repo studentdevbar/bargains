@@ -22,14 +22,6 @@ export default function VerifyAccountPage() {
   const [profile, setProfile] = useState<Partial<ProfileData>>({});
   const [schoolEmail, setSchoolEmail] = useState("");
 
-  // Hard-coded options for now; superseded by fetch in Step1
-  const schoolOptions = [
-    { value: "unilag", label: "University of Lagos" },
-    { value: "ui", label: "University of Ibadan" },
-    { value: "oau", label: "Obafemi Awolowo University" },
-    { value: "uniben", label: "University of Benin" },
-  ];
-
   return (
     <AuthWrapper
       heading={
@@ -59,7 +51,6 @@ export default function VerifyAccountPage() {
             dob: profile.dob,
             school: profile.school,
           }}
-          schools={schoolOptions}
           onNext={(data) => {
             setProfile(data);
             setStep(2);

@@ -35,7 +35,7 @@ export default function Page(props: {  searchParams: SearchParams }) {
       setLoading(true);
       const res = await confirmAccount(token as string);
       if (res.success) {
-        await setVerifiedCookie(true);
+        // await setVerifiedCookie(true);
         setStatus("success");
         toast.success("Account confirmed successfully");
       } else {
