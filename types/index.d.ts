@@ -5,21 +5,23 @@ type AuthDataType = {
     verified: boolean;
 }
 
-export type CouponType = 'code' | 'link';
 
-export interface Coupon {
+export interface CouponType {
     id: number;
     title: string;
     is_exclusive: boolean;
     expires_at: string | null; // ISO datetime string or null
-    uses: number;
+    favorites: number;
     shares_count: number;
     active: boolean;
     photo_cover: string | null;
-    type: CouponType;
+    type: 'code' | 'link' | 'drop';
     featured: boolean;
-    created_at: string; // ISO datetime string
+    created_at: string; 
     vendor: string;
+    drop_at: string | null;
+    redeemed_at?: string;
+    favourited?: boolean;
   }
 
 // Params for GET /api/coupons

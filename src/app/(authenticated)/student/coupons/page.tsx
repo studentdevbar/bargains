@@ -6,33 +6,34 @@ import { Heart, TicketCheck } from "lucide-react";
 import { getRedeemedCoupons } from "@/actions/coupons/get-redeemed";
 import { getFavourites } from "@/actions/coupons/get-favourites";
 import DataTablePagination from "@/lib/DataTablePagination";
+import { CouponType } from "../../../../../types";
 
-type CouponData = {
-  id: number;
-  title: string;
-  is_exclusive: boolean;
-  expires_at: string | null;
-  uses: number;
-  shares_count: number;
-  active: boolean;
-  photo_cover: string | null;
-  type: "code" | "link";
-  featured: boolean;
-  created_at: string;
-  vendor: string;
-  coupon_code?: string;
-  coupon_url?: string;
-  redeemed_at?: string;
-  is_favorited?: boolean;
-};
+// type CouponType = {
+//   id: number;
+//   title: string;
+//   is_exclusive: boolean;
+//   expires_at: string | null;
+//   uses: number;
+//   shares_count: number;
+//   active: boolean;
+//   photo_cover: string | null;
+//   type: "code" | "link";
+//   featured: boolean;
+//   created_at: string;
+//   vendor: string;
+//   coupon_code?: string;
+//   coupon_url?: string;
+//   redeemed_at?: string;
+//   is_favorited?: boolean;
+// };
 
 export default function StudentCouponsPage() {
   const [activeTab, setActiveTab] = useState<"favourites" | "redeemed">("favourites");
   const [loading, setLoading] = useState(false);
   const [loadingRedeemed, setLoadingRedeemed] = useState(true);
   const [loadingFavourites, setLoadingFavourites] = useState(true);
-  const [redeemedCoupons, setRedeemedCoupons] = useState<CouponData[]>([]);
-  const [favouritedCoupons, setFavouritedCoupons] = useState<CouponData[]>([]);
+  const [redeemedCoupons, setRedeemedCoupons] = useState<CouponType[]>([]);
+  const [favouritedCoupons, setFavouritedCoupons] = useState<CouponType[]>([]);
   const [mounted, setMounted] = useState(false);
   
   // Pagination state for redeemed coupons
@@ -58,15 +59,15 @@ export default function StudentCouponsPage() {
       setLoadingFavourites(true);
       try {
         const response = await getFavourites(favouritesPage, favouritesPerPage);
-        if (response.success && response.data) {
+        if (response.success && response.data.data) {
           const paginatedData = response.data as {
             current_page: number;
-            data: CouponData[];
+            data: CouponType[];
             last_page: number;
             per_page: number;
             total: number;
           };
-          setFavouritedCoupons(response.data.data);
+          response.data.data.length > 0 && setFavouritedCoupons(response.data.data);
           setFavouritesPage(paginatedData.current_page);
           setFavouritesTotalPages(paginatedData.last_page);
           setFavouritesTotal(paginatedData.total);
@@ -88,15 +89,15 @@ export default function StudentCouponsPage() {
       setLoadingRedeemed(true);
       try {
         const response = await getRedeemedCoupons(redeemedPage, redeemedPerPage);
-        if (response.success && response.data) {
+        if (response.success && response.data.data) {
           const paginatedData = response.data as {
             current_page: number;
-            data: CouponData[];
+            data: CouponType[];
             last_page: number;
             per_page: number;
             total: number;
           };
-          setRedeemedCoupons(response.data.data);
+          response.data.data.length > 0 && setRedeemedCoupons(response.data.data);
           setRedeemedPage(paginatedData.current_page);
           setRedeemedTotalPages(paginatedData.last_page);
           setRedeemedTotal(paginatedData.total);
@@ -318,18 +319,9 @@ export default function StudentCouponsPage() {
               <div key={coupon.id} className="relative">
                 <CouponCard
                   className="!h-32"
-                  id={coupon.id}
-                  imageSrc={coupon.photo_cover || "/images/placeholder.jpg"}
-                  imageAlt={coupon.vendor}
+                  coupon={coupon}
                   imageBgClass="bg-[#F3F4F6]"
-                  title={coupon.title}
-                  isExclusive={coupon.is_exclusive}
-                  expiryDateLabel={formatExpiry(coupon.expires_at)}
-                  likes={coupon.uses}
-                  shares={coupon.shares_count}
-                  buttonLabel={coupon.type === "code" ? "Show Code" : "Get Deal"}
-                  couponUrl={coupon.coupon_url}
-                  isFavorited={activeTab === "favourites" ? true : (coupon.is_favorited ?? false)}
+                 
                 />
                 
                 {/* Redeemed badge */}

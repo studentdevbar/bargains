@@ -7,6 +7,7 @@ import FiltersSidebar from "@/components/coupons/FiltersSidebar";
 import { getAllCoupons } from "@/actions/coupons/get-all";
 import CouponsPagination from "@/components/coupons/CouponsPagination";
 import { useEffect, useState, useMemo } from "react";
+import { CouponType } from "../../../../types";
 
 type FiltersType = {
   vendor_id?: number;
@@ -30,32 +31,14 @@ export default function CouponsPage() {
     tags: { id: number; name: string }[];
     vendors: { id: number; name: string }[];
   }>({ categories: [], tags: [], vendors: [] });
-
-  const [couponsData, setCouponsData] = useState<{
-    current_page: number;
-    data: Array<{
-      id: number;
-      title: string;
-      is_exclusive: boolean;
-      expires_at: string | null;
-      uses: number;
-      favorites: number;
-      shares_count: number;
-      active: boolean;
-      photo_cover: string | null;
-      type: "code" | "link";
-      featured: boolean;
-      created_at: string;
-      vendor: string;
-    }>;
-    total: number;
-    last_page: number;
-  }>({
+  const [pagination, setPagination] = useState({
     current_page: 1,
-    data: [],
     total: 0,
     last_page: 1,
   });
+
+  const [coupons, setCoupons] = useState<CouponType[]>([]);
+  
 
   // Fetch filters data on mount
   useEffect(() => {
@@ -104,25 +87,21 @@ export default function CouponsPage() {
         const data =
           couponsResponse.success && couponsResponse.data
             ? couponsResponse.data
-            : { current_page: 1, data: [], total: 0, last_page: 1 };
-        setCouponsData(data);
+            : {};
+        if (data) {
+          setCoupons(data.data);
+          setPagination({
+            current_page: data.current_page,
+            total: data.total,
+            last_page: data.last_page,
+          });
+        }
       } finally {
         setLoading(false);
       }
     }
     fetchCoupons();
   }, [queryParams]);
-
-  const formatExpiry = (iso: string | null) => {
-    if (!iso) return "No expiry";
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return "No expiry";
-    return d.toLocaleDateString(undefined, {
-      day: "2-digit",
-      month: "short",
-      year: "2-digit",
-    });
-  };
 
   const handleFilterChange = (next: FiltersType) => {
     setFilters((prev) => ({ ...prev, ...next, page: 1 }));
@@ -181,7 +160,7 @@ export default function CouponsPage() {
                 <p>
                   {loading
                     ? "Loading..."
-                    : `Showing ${couponsData.data.length} of ${couponsData.total} results`}
+                    : `Showing ${coupons.length} of ${pagination.total} results`}
                 </p>
                 <div className="inline-flex items-center gap-2">
                   <span>Sort by:</span>
@@ -196,35 +175,24 @@ export default function CouponsPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {couponsData.data.map((c) => (
+                {coupons.map((c) => (
                   <CouponCard
                     key={c.id}
                     className="!h-32"
-                    id={c.id}
-                    imageSrc={c.photo_cover || ""}
-                    imageAlt={c.vendor}
                     imageBgClass="bg-[#F3F4F6]"
-                    title={c.title}
-                    isExclusive={c.is_exclusive}
-                    expiryDateLabel={formatExpiry(c.expires_at)}
-                    likes={c.favorites}
-                    shares={c.shares_count}
-                    buttonLabel={c.type === "code" ? "Show Code" : "Get Deal"}
-                    couponUrl={
-                      c.type === "link" ? "/coupons/" + c.id : undefined
-                    }
+                    coupon={c}
                   />
                 ))}
               </div>
 
-              {couponsData.last_page > 1 && (
+              {pagination.last_page > 1 && (
                 <div className="mt-8">
                   <CouponsPagination
-                    page={couponsData.current_page}
-                    totalPages={couponsData.last_page}
+                    page={pagination.current_page}
+                    totalPages={pagination.last_page}
                     perPage={filters.per_page || 15}
-                    totalItems={couponsData.total}
-                    currentPageLength={couponsData.data.length}
+                    totalItems={pagination.total}
+                    currentPageLength={coupons.length}
                     onPageChange={handlePageChange}
                     onPerPageChange={handlePerPageChange}
                   />
