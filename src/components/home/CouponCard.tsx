@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CalendarDays,
   Heart,
@@ -12,62 +13,160 @@ import {
   Copy,
   ExternalLink,
   Clock,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogDescription,
 } from "../ui/dialog";
 import { useCountdown } from "@/components/drops/Countdown";
-import { Button } from "../ui/button";
 import Link from "next/link";
+import { getSession } from "@/actions/helpers/session";
+import { getCouponReveal } from "@/actions/coupons/reveal";
+import { favouriteCoupon } from "@/actions/coupons/favourite";
+import { CouponType } from "../../../types";
 
-export interface CouponCardProps {
-  id: number;
-  imageSrc: string;
-  imageAlt: string;
-  imageBgClass?: string;
-  isExclusive?: boolean;
-  expiryDateLabel?: string; // e.g. "25 Nov, 25"
-  title: string;
-  likes?: number;
-  shares?: number;
-  buttonLabel?: string;
-  couponCode?: string;
-  couponUrl?: string;
-  className?: string;
-  variant?: "coupon" | "drop";
-  dropAt?: string; // ISO string, required when variant is "drop"
-}
+// export interface CouponCardProps {
+//   id: number;
+//   photo_cover: string;
+//   imageAlt: string;
+//   imageBgClass?: string;
+//   isExclusive?: boolean;
+//   expiryDateLabel?: string; // e.g. "25 Nov, 25"
+//   title: string;
+//   likes?: number;
+//   shares?: number;
+//   buttonLabel?: string;
+//   couponUrl?: string;
+//   className?: string;
+//   variant?: "coupon" | "drop";
+//   dropAt?: string; // ISO string, required when variant is "drop"
+//   isFavorited?: boolean;
+// }
+
+const formatExpiry = (iso: string | null) => {
+  if (!iso) return "No expiry";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "No expiry";
+  return d.toLocaleDateString(undefined, {
+    day: "2-digit",
+    month: "short",
+    year: "2-digit",
+  });
+};
 
 export default function CouponCard({
-  id,
-  imageSrc,
-  imageAlt,
   imageBgClass = "bg-gray-100",
-  isExclusive = true,
-  expiryDateLabel = "25 Nov, 25",
-  title,
-  likes = 501,
-  shares = 201,
-  buttonLabel = "Show Coupon",
-  couponCode = "SB-123-ABC",
-  couponUrl,
   className,
-  variant = "coupon",
-  dropAt,
-}: CouponCardProps) {
+  coupon,
+}: {
+  imageBgClass?: string;
+  className?: string;
+  coupon: CouponType;
+}) {
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [revealedCode, setRevealedCode] = useState<string | null>(null);
+  const [isRevealing, setIsRevealing] = useState(false);
+  const [revealError, setRevealError] = useState(false);
+  const [isFavourited, setIsFavourited] = useState(coupon.favourited ?? false);
+  const [isFavouriting, setIsFavouriting] = useState(false);
+  const [revealMessage, setRevealMessage] = useState<string | null>(null);
+  const router = useRouter();
+
 
   // Always call hook to respect rules-of-hooks; UI will only show when variant === "drop"
   const { days, hours, minutes, seconds } = useCountdown(
-    dropAt ?? new Date(Date.now() + 60 * 60 * 1000).toISOString()
+    coupon.drop_at ?? new Date(Date.now() + 60 * 60 * 1000).toISOString()
   );
-  const isDrop = variant === "drop";
+  const isDrop = coupon.type === "drop";
   const pad = (n: number) => String(n).padStart(2, "0");
+
+  const revealCoupon = async () => {
+    setIsRevealing(true);
+    setRevealError(false);
+    setRevealMessage(null);
+    try {
+      const response = await getCouponReveal(coupon.id);
+      if (response.success && response.data) {
+        const data = response.data;
+        const message = typeof data.message === "string" ? data.message : null;
+        const value = typeof data.value === "string" ? data.value : null;
+        if (message && message.trim().length > 0) {
+          setRevealMessage(message);
+          setRevealError(false);
+        }
+        if (value && value.trim().length > 0) {
+          setRevealedCode(value);
+          setRevealError(false);
+        }
+        if (
+          !(message && message.trim().length > 0) &&
+          !(value && value.trim().length > 0)
+        ) {
+          setRevealError(true);
+        }
+      } else {
+        setRevealError(true);
+      }
+    } catch (error) {
+      console.error("Failed to reveal coupon:", error);
+      setRevealError(true);
+    } finally {
+      setIsRevealing(false);
+    }
+  };
+
+  const handleShowCoupon = async () => {
+    const token = await getSession();
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    setDialogOpen(true);
+
+    // Fetch the revealed coupon code if not already loaded
+    if (!revealedCode && !isRevealing && !revealError) {
+      await revealCoupon();
+    }
+  };
+
+  const handleRetry = async () => {
+    await revealCoupon();
+  };
+
+  const handleFavourite = async () => {
+    const token = await getSession();
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    if (isFavouriting) return;
+
+    setIsFavouriting(true);
+    // Optimistic update
+    // setIsFavourited(!isFavourited);
+
+    try {
+      const response = await favouriteCoupon(coupon.id.toString());
+      if (!response.success) {
+        // Revert on failure
+        setIsFavourited(isFavourited);
+      }
+    } catch (error) {
+      console.error("Failed to favourite coupon:", error);
+      // Revert on error
+      setIsFavourited(isFavourited);
+    } finally {
+      setIsFavouriting(false);
+    }
+  };
 
   const copyText = async (text: string) => {
     try {
@@ -77,14 +176,17 @@ export default function CouponCard({
     }
   };
 
-  const handleCopyCode = () => copyText(couponCode);
+  const couponUrl = coupon.type === "link" ? "/coupons/" + coupon.id : undefined;
+  const buttonLabel = coupon.type === "code" ? "Show Code" : "Get Deal";
+
+  const handleCopyCode = () => revealedCode && copyText(revealedCode);
   const handleCopyLink = () => copyText(couponUrl || window.location.href);
 
   const handleShare = async () => {
     try {
       if (navigator.share) {
         await navigator.share({
-          title,
+          title: coupon.title,
           text: "Check out this student coupon",
           url: couponUrl || window.location.href,
         });
@@ -95,24 +197,26 @@ export default function CouponCard({
       // user cancelled or not supported
     }
   };
+
   return (
     <div className="flex h-full flex-col rounded-3xl bg-white p-4 shadow-sm ring-1 ring-gray-200/60">
       {/* Brand image */}
       <div
-        className={`relative mb-5 flex h-64  w-full items-center justify-center overflow-hidden rounded-2xl ${imageBgClass} ${className}`}
+        className={`relative mb-5 flex h-64  w-full overflow-hidden rounded-2xl ${imageBgClass} ${className}`}
       >
         <Image
-          src={imageSrc}
-          alt={imageAlt}
+          src={coupon.photo_cover || ""}
+          alt={coupon.title}
           fill
           sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 30vw"
-          className="object-contain max-h-full max-w-full p-4"
+          className="object-cover"
+          priority={false}
         />
       </div>
 
       {/* Badges */}
       <div className="mb-3 flex items-center gap-3">
-        {isExclusive && (
+        {coupon.is_exclusive && (
           <span className="rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-700">
             Exclusive
           </span>
@@ -125,65 +229,114 @@ export default function CouponCard({
         ) : (
           <span className="inline-flex items-center gap-1 rounded-full border border-orange-300 bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700">
             <CalendarDays className="size-4" />
-            {expiryDateLabel}
+            {formatExpiry(coupon.expires_at)}
           </span>
         )}
       </div>
 
       {/* Title */}
       <h3 className="mb-6 text-xl font-semibold leading-snug text-gray-900">
-        {title}
+        {coupon.title}
       </h3>
 
       {/* Stats */}
       <div className="mt-auto flex items-center justify-between border-t border-gray-200/70 pt-4 text-sm text-gray-600">
         <div className="flex items-center gap-6">
-          <span className="inline-flex items-center gap-1">
-            <Heart className="size-4" />
-            {likes}
-          </span>
+          <button
+            onClick={handleFavourite}
+            disabled={isFavouriting}
+            className="inline-flex items-center gap-1 cursor-pointer hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Heart
+              className={`size-4 ${
+                isFavourited ? "fill-red-500 text-red-500" : ""
+              }`}
+            />
+            {coupon.favorites}
+          </button>
           <span className="inline-flex items-center gap-1">
             <Upload className="size-4" />
-            {shares}
+            {coupon.shares_count}
           </span>
         </div>
       </div>
 
       {/* Button */}
       {isDrop ? (
-        <Link href={`/coupons/${id}`}>
+        <Link href={`/coupons/${coupon.id}`}>
           <button className="w-full mt-5 rounded-full bg-[var(--color-accent-main)] px-6 py-3 text-white hover:bg-[var(--color-accent-dark)]">
             View Drop
           </button>
         </Link>
       ) : (
         <div className="mt-5">
-          <Dialog>
-            <DialogTrigger asChild>
-              <button className="w-full rounded-full bg-[var(--color-accent-main)] px-6 py-3 text-white hover:bg-[var(--color-accent-dark)]">
-                {buttonLabel}
-              </button>
-            </DialogTrigger>
+          <button
+            onClick={handleShowCoupon}
+            className="w-full rounded-full bg-[var(--color-accent-main)] px-6 py-3 text-white hover:bg-[var(--color-accent-dark)]"
+          >
+            {buttonLabel}
+          </button>
+
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogContent>
               <DialogHeader className="pr-8">
-                <DialogTitle>{title}</DialogTitle>
+                <DialogTitle>{coupon.title}</DialogTitle>
                 <DialogDescription>
                   Use the coupon below and let us know if it worked.
                 </DialogDescription>
               </DialogHeader>
 
               {/* Coupon code */}
-              <div className="flex items-center justify-between rounded-lg border border-secondary-main bg-secondary-main/10 px-4 py-3">
-                <code className="font-mono text-sm tracking-wide">
-                  {couponCode}
-                </code>
-                <button
-                  onClick={handleCopyCode}
-                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-accent-main hover:bg-accent-main/10 cursor-pointer"
-                >
-                  <Copy className="size-4" /> Copy
-                </button>
-              </div>
+              {revealError ? (
+                <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <AlertCircle className="size-5 text-red-600" />
+                    <div>
+                      <h4 className="text-sm font-semibold text-red-900">
+                        Failed to load coupon
+                      </h4>
+                      <p className="text-xs text-red-700 mt-0.5">
+                        We couldn&apos;t retrieve the coupon code. Please try again.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleRetry}
+                    disabled={isRevealing}
+                    className="inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw
+                      className={`size-4 ${isRevealing ? "animate-spin" : ""}`}
+                    />
+                    {isRevealing ? "Retrying..." : "Try Again"}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {revealMessage && (
+                    <div className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="size-5 text-amber-600" />
+                        <p className="text-sm text-amber-800">
+                          {revealMessage}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between rounded-lg border border-secondary-main bg-secondary-main/10 px-4 py-3">
+                    <code className="font-mono text-sm tracking-wide">
+                      {isRevealing ? "Loading..." : revealedCode}
+                    </code>
+                    <button
+                      onClick={handleCopyCode}
+                      disabled={isRevealing || !revealedCode}
+                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-accent-main hover:bg-accent-main/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Copy className="size-4" /> Copy
+                    </button>
+                  </div>
+                </>
+              )}
 
               {/* Visit link */}
               {couponUrl && (

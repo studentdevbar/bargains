@@ -5,27 +5,22 @@ import AuthWrapper from "@/components/auth/AuthWrapper";
 import Step1ProfileSchool from "@/components/auth/verify/Step1ProfileSchool";
 import Step2SchoolEmail from "@/components/auth/verify/Step2SchoolEmail";
 import Step3SentNotice from "@/components/auth/verify/Step3SentNotice";
+import { verifyAccount } from "@/actions/account/verify";
+import { toast } from "sonner";
 
-type ProfileData = {
+export type ProfileData = {
   firstName: string;
   lastName: string;
-  gender: string;
+  gender: "male" | "female";
   dob: string;
   school: string;
+  schoolId: number;
 };
 
 export default function VerifyAccountPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [profile, setProfile] = useState<Partial<ProfileData>>({});
   const [schoolEmail, setSchoolEmail] = useState("");
-
-  // Hard-coded options for now; can be fetched later
-  const schoolOptions = [
-    { value: "unilag", label: "University of Lagos" },
-    { value: "ui", label: "University of Ibadan" },
-    { value: "oau", label: "Obafemi Awolowo University" },
-    { value: "uniben", label: "University of Benin" },
-  ];
 
   return (
     <AuthWrapper
@@ -56,7 +51,6 @@ export default function VerifyAccountPage() {
             dob: profile.dob,
             school: profile.school,
           }}
-          schools={schoolOptions}
           onNext={(data) => {
             setProfile(data);
             setStep(2);
@@ -67,6 +61,7 @@ export default function VerifyAccountPage() {
       {step === 2 && profile.school && (
         <Step2SchoolEmail
           school={profile.school}
+          profile={profile}
           defaultEmail={schoolEmail}
           onBack={() => setStep(1)}
           onNext={(email) => {

@@ -1,6 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { registerUser } from "@/actions/register/register";
+import { CustomButton } from "@/components/ui/custom-button";
+import { useState } from "react";
+import { toast } from "sonner";
 
 type EmailStepProps = {
   onNext: (email: string) => void;
@@ -8,24 +11,36 @@ type EmailStepProps = {
 };
 
 export default function EmailStep({ onNext, defaultEmail }: EmailStepProps) {
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const data = new FormData(form);
-    const email = String(data.get("email") || "").trim();
-    if (!email) return;
-    onNext(email);
+  const [email, setEmail] = useState<string>(defaultEmail || "");
+
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit() {
+    if (!email.trim()) return;
+    if (loading) return;
+    setLoading(true);
+    const result = await registerUser(email);
+
+    if (result.success) {
+      onNext(email);
+    } else {
+      toast.error(result.error);
+    }
+    setLoading(false);
   }
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit}>
+    <div className="space-y-4">
       <div className="space-y-1.5">
-        <label htmlFor="email" className="text-sm font-medium">Email</label>
+        <label htmlFor="email" className="text-sm font-medium">
+          Email
+        </label>
         <input
           id="email"
           name="email"
           type="email"
-          defaultValue={defaultEmail}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
           required
           className="h-11 mt-2 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50"
@@ -33,9 +48,14 @@ export default function EmailStep({ onNext, defaultEmail }: EmailStepProps) {
         />
       </div>
 
-      <Button type="submit" className="w-full h-11 text-[15px] rounded-full bg-accent-main">Continue</Button>
-    </form>
+      <CustomButton
+        onClick={handleSubmit}
+        loading={loading}
+        loadingText="Sending..."
+        className="w-full h-11 text-[15px] rounded-full bg-accent-main"
+      >
+        Continue
+      </CustomButton>
+    </div>
   );
 }
-
-
