@@ -23,9 +23,9 @@ export default function DashboardTopbar() {
           >
             <Menu className="size-5" />
           </button>
-          <a href="/" className="flex shrink-0 items-center gap-2 md:gap-3">
+          <Link href="/" className="flex shrink-0 items-center gap-2 md:gap-3">
             <Image src="/logo.png" alt="Student Bargains" width={96} height={96} />
-          </a>
+          </Link>
 
           <form className="ml-2 hidden min-w-0 max-w-2xl mx-auto flex-1 items-center rounded-full bg-neutral-100 pl-4 pr-1 ring-1 ring-neutral-200 focus-within:ring-neutral-300 md:flex">
             <input

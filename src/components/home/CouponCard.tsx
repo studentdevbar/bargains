@@ -93,7 +93,7 @@ export default function CouponCard({
     try {
       const response = await getCouponReveal(coupon.id);
       if (response.success && response.data) {
-        const data: any = response.data;
+        const data = response.data;
         const message = typeof data.message === "string" ? data.message : null;
         const value = typeof data.value === "string" ? data.value : null;
         if (message && message.trim().length > 0) {
@@ -296,7 +296,7 @@ export default function CouponCard({
                         Failed to load coupon
                       </h4>
                       <p className="text-xs text-red-700 mt-0.5">
-                        We couldn't retrieve the coupon code. Please try again.
+                        We couldn&apos;t retrieve the coupon code. Please try again.
                       </p>
                     </div>
                   </div>

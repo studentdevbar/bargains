@@ -17,7 +17,7 @@ export default function Page() {
           height={150}
         />
         <h1 className="mx-auto max-w-3xl text-balance text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl md:text-6xl">
-          Don't miss out, join the queue
+          Don&apos;t miss out, join the queue
           <br className="hidden sm:block" />
           and get to know first
         </h1>

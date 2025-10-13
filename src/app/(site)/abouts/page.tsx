@@ -24,12 +24,12 @@ export default function AboutPage() {
             <div className="mt-4 space-y-4 text-gray-700">
               <p>
                 Founded in 2025, Student Bargains Nigeria was born from a simple truth: Nigerian students are brilliant,
-                ambitious, and resourceful — but the larger environment wasn't designed to support them financially.
+                ambitious, and resourceful — but the larger environment wasn&apos;t designed to support them financially.
               </p>
               <p>
-                While global student discount platforms exist, Nigeria's 2+ million higher education students remained largely
+                While global student discount platforms exist, Nigeria&apos;s 2+ million higher education students remained largely
                 underserved. Payment barriers, verification challenges, and lack of local partnerships created a massive gap
-                between students' needs and available solutions.
+                between students&apos; needs and available solutions.
               </p>
               <p>
                 We see this as an opportunity to build something transformative and a way for us to contribute our quota to
@@ -39,7 +39,7 @@ export default function AboutPage() {
           </div>
           <div>
             <div className="relative overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
-              <Image src="/images/hero_image.png" alt="Students collaborating" width={900} height={600} className="h-auto w-full object-cover" />
+              <Image src="/images/background_students.jpg" alt="Students collaborating" width={900} height={900} className="h-auto w-full object-cover" />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </div>
           </div>
@@ -79,8 +79,8 @@ export default function AboutPage() {
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h3 className="text-xl font-semibold text-gray-900">Vision Statement</h3>
             <p className="mt-3 text-gray-700">
-              To become Nigeria's most trusted student affinity network, enabling every verified student across the nation to
-              save, learn, and earn — building lifelong financial habits that transform their futures and strengthen Nigeria's
+              To become Nigeria&apos;s most trusted student affinity network, enabling every verified student across the nation to
+              save, learn, and earn — building lifelong financial habits that transform their futures and strengthen Nigeria&apos;s
               economy.
             </p>
           </div>
@@ -123,7 +123,7 @@ export default function AboutPage() {
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <h3 className="text-xl font-semibold text-gray-900">For Brands</h3>
             <p className="mt-3 text-gray-700">
-              Verified access to Nigeria's most valuable consumer demographic. Our partners gain:
+              Verified access to Nigeria&apos;s most valuable consumer demographic. Our partners gain:
             </p>
             <ul className="mt-3 list-disc space-y-1 pl-5 text-gray-700">
               <li>Verification technology that prevents discount abuse while staying accessible</li>
@@ -141,16 +141,16 @@ export default function AboutPage() {
           <h3 className="text-2xl font-bold text-gray-900 sm:text-3xl">What We Believe</h3>
           <ul className="mt-4 list-disc space-y-2 pl-5 text-gray-700">
             <li>
-              Every student deserves financial dignity. Being broke shouldn't mean paying full price for essentials while
+              Every student deserves financial dignity. Being broke shouldn&apos;t mean paying full price for essentials while
               navigating the challenges of Nigerian university life — from ASUU strikes to hostel struggles.
             </li>
             <li>
-              Local context matters. Global platforms fail Nigerian students because they don't understand OPay, mobile money,
-              campus Wi‑Fi verification, or the reality that many universities don't issue .edu.ng email addresses.
+              Local context matters. Global platforms fail Nigerian students because they don&apos;t understand OPay, mobile money,
+              campus Wi‑Fi verification, or the reality that many universities don&apos;t issue .edu.ng email addresses.
             </li>
             <li>
               Youth spending power drives economic growth. When students save money, they invest it into education,
-              entrepreneurship, and their futures — creating ripple effects across Nigeria's economy.
+              entrepreneurship, and their futures — creating ripple effects across Nigeria&apos;s economy.
             </li>
             <li>
               Technology should reduce barriers, not create them. Our mobile‑first, low‑data platform works for the student in
@@ -166,7 +166,7 @@ export default function AboutPage() {
           <div className="grid items-center gap-6 md:grid-cols-3">
             <div className="md:col-span-2">
               <h3 className="text-2xl font-bold text-gray-900">Ready to partner with a team that delivers real value?</h3>
-              <p className="mt-2 text-gray-700">Let's collaborate to serve Nigerian students and grow your brand.</p>
+              <p className="mt-2 text-gray-700">Let&apos;s collaborate to serve Nigerian students and grow your brand.</p>
             </div>
             <div className="md:justify-self-end">
               <Link href="/waitlist" className="inline-flex items-center rounded-full bg-accent-main px-5 py-3 font-medium text-white shadow hover:opacity-95">
